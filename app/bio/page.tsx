@@ -1,7 +1,8 @@
-"use client";
-
 import { MailingListSection } from "@/components/MailingListSection";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getBio } from "@/lib/data";
+
+export const dynamic = "force-dynamic";
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -11,13 +12,6 @@ const SOCIALS = {
   tiktok: "https://www.tiktok.com/@comedianmikerita",
   youtube: "https://www.youtube.com/c/MikeRita",
 };
-
-const AWARDS = [
-  "2024 — Honoured by the President of Portugal — one of the 70 most significant Portuguese Canadians of the past 70 years",
-  "2022 — Canadian Screen Award Nominee — Best Performance, Sketch Comedy (Individual or Ensemble) — Roast Battle Canada",
-  "2014 & 2015 — Now Magazine Runner-Up — Best Male Stand-Up",
-  "2010 — Tim Sims Encouragement Award Winner — Second City Toronto",
-];
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
 
@@ -79,12 +73,17 @@ function Footer() {
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
-export default function BioPage() {
+export default async function BioPage() {
+  const { bio, awards } = await getBio();
+  const paragraphs = bio.text
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
   return (
     <>
       <SiteHeader />
       <main style={{ backgroundColor: "#1a0f0a" }}>
-        {/* Title — full width, centred */}
         <div style={{ padding: "60px 32px 32px", textAlign: "center", width: "100%", boxSizing: "border-box" }}>
           <p
             style={{
@@ -114,7 +113,6 @@ export default function BioPage() {
           </h1>
         </div>
 
-        {/* Photo — centred, max 600px, full image visible */}
         <div style={{ padding: "0 32px", boxSizing: "border-box", width: "100%" }}>
           <img
             src="/images/mike-bio.jpg"
@@ -130,7 +128,6 @@ export default function BioPage() {
           />
         </div>
 
-        {/* Bio + awards — single centred column */}
         <div
           style={{
             maxWidth: "680px",
@@ -139,22 +136,19 @@ export default function BioPage() {
             boxSizing: "border-box",
           }}
         >
-          <p style={{ color: "#F5F0E8", lineHeight: 1.8, marginBottom: "20px", fontSize: "1rem" }}>
-            Mike Rita is an award-winning comedian from Toronto, known for his relatable storytelling and sharp humour.
-            Drawing inspiration from his Portuguese heritage, Mike&apos;s comedy explores themes of family dynamics, cultural
-            identity, and everyday life experiences solidifying his status as a &lsquo;must-see&rsquo; performer.
-          </p>
-          <p style={{ color: "#F5F0E8", lineHeight: 1.8, marginBottom: "20px", fontSize: "1rem" }}>
-            Mike has made numerous appearances at the prestigious Just For Laughs festival and notably became the first comic
-            to host a 420 show at the festival. In 2024, he was honoured by the president of Portugal as one of the 70 most
-            significant Portuguese Canadians of the past 70 years, highlighting his impact and influence.
-          </p>
-          <p style={{ color: "#F5F0E8", lineHeight: 1.8, marginBottom: "32px", fontSize: "1rem" }}>
-            His albums, &lsquo;Pot Comic&rsquo; and &lsquo;Child of the 90s,&rsquo; have earned him the title &ldquo;Voice
-            of a Generation&rdquo; for their humorous and timeless perspectives on life. Additionally, his comedy specials
-            &lsquo;Live in Toronto&rsquo; and &lsquo;Reets&rsquo; are celebrated by many as one of the best to have come out
-            of Canada in recent years, showcasing his unique ability to blend humour with heartfelt storytelling.
-          </p>
+          {paragraphs.map((para, i) => (
+            <p
+              key={i}
+              style={{
+                color: "#F5F0E8",
+                lineHeight: 1.8,
+                marginBottom: i < paragraphs.length - 1 ? "20px" : "32px",
+                fontSize: "1rem",
+              }}
+            >
+              {para}
+            </p>
+          ))}
 
           <div
             style={{
@@ -177,9 +171,9 @@ export default function BioPage() {
               Awards &amp; Highlights
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {AWARDS.map((award) => (
+              {awards.map((award) => (
                 <p
-                  key={award}
+                  key={award.id}
                   style={{
                     color: "#B8A898",
                     fontSize: "0.9rem",
@@ -189,7 +183,7 @@ export default function BioPage() {
                     borderLeft: "2px solid #E8651A",
                   }}
                 >
-                  {award}
+                  {award.text}
                 </p>
               ))}
             </div>

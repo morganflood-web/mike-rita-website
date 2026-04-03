@@ -1,11 +1,14 @@
-"use client";
-
 import Link from "next/link";
 
 import { MailingListSection } from "@/components/MailingListSection";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getShows } from "@/lib/data";
+import type { Show } from "@/lib/db";
+import { filterUpcomingShows, showDateShortNoYear } from "@/lib/showsPublic";
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+export const dynamic = "force-dynamic";
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
 const SOCIALS = {
   instagram: "https://www.instagram.com/ritathehuman/",
@@ -13,75 +16,6 @@ const SOCIALS = {
   tiktok: "https://www.tiktok.com/@comedianmikerita",
   youtube: "https://www.youtube.com/c/MikeRita",
 };
-
-/** YYYY-MM-DD in local time, comparable with ISO date strings */
-function todayDateKey(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-const UPCOMING_SHOWS_ALL = [
-  {
-    dateKey: "2026-04-03",
-    date: "Fri, Apr 03",
-    venue: "The Boardroom Comedy Club",
-    city: "Toronto, ON",
-    ticketUrl:
-      "https://theboardroomcomedyclub.com/event/mike-ritas-420-comedy-show-1-night-only-twice-april-3rd-at-boardroom-on-932-bloor-st-west/",
-    soldOut: false,
-  },
-  {
-    dateKey: "2026-04-04",
-    date: "Sat, Apr 04",
-    venue: "The Boardroom Comedy Club",
-    city: "Toronto, ON",
-    ticketUrl:
-      "https://theboardroomcomedyclub.com/event/mike-ritas-420-comedy-show-1-night-only-twice-saturday-april-4th-at-boardroom-on-932-bloor-st-west/",
-    soldOut: false,
-  },
-  {
-    dateKey: "2026-05-08",
-    date: "Fri, May 08",
-    venue: "Yuk Yuk's Niagara Falls",
-    city: "Niagara Falls, ON",
-    ticketUrl: "https://www.yukyuks.com/niagarafalls/show/mike-rita-43040",
-    soldOut: false,
-  },
-  {
-    dateKey: "2026-05-09",
-    date: "Sat, May 09",
-    venue: "Yuk Yuk's Niagara Falls",
-    city: "Niagara Falls, ON",
-    ticketUrl: "https://www.yukyuks.com/niagarafalls/show/mike-rita-43040",
-    soldOut: false,
-  },
-  {
-    dateKey: "2026-05-15",
-    date: "Fri, May 15",
-    venue: "Portuguese Cultural Centre of Mississauga",
-    city: "Mississauga, ON",
-    ticketUrl:
-      "https://www.eventbrite.com/e/mississauga-on-mike-ritas-big-giant-portuguese-festa-tickets-1985828941822",
-    soldOut: false,
-  },
-  {
-    dateKey: "2026-06-15",
-    date: "Mon, Jun 15",
-    venue: "Punch Line Houston",
-    city: "Houston, TX",
-    ticketUrl:
-      "https://www.ticketmaster.com/the-portuguese-kids-present-houston-we-houston-texas-06-15-2026/event/3A006477C5E0AA1A",
-    soldOut: false,
-  },
-] as const;
-
-function getUpcomingShowsForToday() {
-  const key = todayDateKey();
-  return UPCOMING_SHOWS_ALL.filter((s) => s.dateKey >= key);
-}
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
 
@@ -146,7 +80,6 @@ function FeaturedReleaseSection() {
           gap: "64px",
         }}
       >
-        {/* Image first in DOM so wrapped mobile layout shows image above text */}
         <div
           style={{
             flex: "1 1 0",
@@ -199,6 +132,7 @@ function FeaturedReleaseSection() {
                 href={btn.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="public-cta-link"
                 style={{
                   border: "1px solid #E8651A",
                   color: "#F5F0E8",
@@ -211,15 +145,6 @@ function FeaturedReleaseSection() {
                   maxWidth: "100%",
                   width: "100%",
                   boxSizing: "border-box",
-                  transition: "background 0.2s, color 0.2s",
-                }}
-                onMouseOver={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#E8651A";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "#1a0f0a";
-                }}
-                onMouseOut={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "transparent";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "#F5F0E8";
                 }}
               >
                 {btn.label}
@@ -232,9 +157,7 @@ function FeaturedReleaseSection() {
   );
 }
 
-function UpcomingShowsSection() {
-  const shows = getUpcomingShowsForToday();
-
+function UpcomingShowsSection({ shows }: { shows: Show[] }) {
   return (
     <section style={{ backgroundColor: "#1a0f0a", padding: "80px 32px" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
@@ -254,61 +177,50 @@ function UpcomingShowsSection() {
           </h2>
         </div>
         <div style={{ borderTop: "1px solid #3a2010" }}>
-          {shows.map((show, i) => {
-            const note =
-              "note" in show && typeof (show as { note?: string }).note === "string"
-                ? (show as { note?: string }).note
-                : "";
-            return (
-              <div
-                key={`${show.dateKey}-${show.venue}-${i}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "14px 0",
-                  borderBottom: "1px solid #3a2010",
-                  gap: "16px",
-                }}
-              >
-                <div style={{ flex: 2 }}>
-                  <span style={{ fontSize: "0.9rem", color: "#F5F0E8", display: "block" }}>
-                    {show.date} — {show.venue}
-                  </span>
-                  {note ? (
-                    <span style={{ fontSize: "0.78rem", color: "#B8A898", display: "block", marginTop: "2px" }}>
-                      {note}
-                    </span>
-                  ) : null}
-                </div>
-                <span style={{ flex: 1, textAlign: "center", fontSize: "0.9rem", color: "#B8A898" }}>
-                  {show.city}
-                </span>
-                <span style={{ flex: 0, textAlign: "right" }}>
-                  {show.soldOut ? (
-                    <span style={{ color: "#B8A898", fontSize: "0.8rem", letterSpacing: "0.1em" }}>SOLD OUT</span>
-                  ) : (
-                    <a
-                      href={show.ticketUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        border: "1px solid #E8651A",
-                        color: "#E8651A",
-                        padding: "4px 16px",
-                        borderRadius: "999px",
-                        fontSize: "0.8rem",
-                        whiteSpace: "nowrap",
-                        textDecoration: "none",
-                      }}
-                    >
-                      Tickets
-                    </a>
-                  )}
+          {shows.map((show) => (
+            <div
+              key={show.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "14px 0",
+                borderBottom: "1px solid #3a2010",
+                gap: "16px",
+              }}
+            >
+              <div style={{ flex: 2 }}>
+                <span style={{ fontSize: "0.9rem", color: "#F5F0E8", display: "block" }}>
+                  {showDateShortNoYear(show.date)} — {show.venue}
                 </span>
               </div>
-            );
-          })}
+              <span style={{ flex: 1, textAlign: "center", fontSize: "0.9rem", color: "#B8A898" }}>
+                {show.city}
+              </span>
+              <span style={{ flex: 0, textAlign: "right" }}>
+                {show.soldOut ? (
+                  <span style={{ color: "#B8A898", fontSize: "0.8rem", letterSpacing: "0.1em" }}>SOLD OUT</span>
+                ) : (
+                  <a
+                    href={show.ticketUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      border: "1px solid #E8651A",
+                      color: "#E8651A",
+                      padding: "4px 16px",
+                      borderRadius: "999px",
+                      fontSize: "0.8rem",
+                      whiteSpace: "nowrap",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Tickets
+                  </a>
+                )}
+              </span>
+            </div>
+          ))}
         </div>
         <div style={{ textAlign: "center", marginTop: "36px" }}>
           <Link
@@ -412,13 +324,16 @@ function Footer() {
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage() {
+export default async function HomePage() {
+  const allShows = await getShows();
+  const upcomingShows = filterUpcomingShows(allShows);
+
   return (
     <>
       <SiteHeader />
       <main>
         <FeaturedReleaseSection />
-        <UpcomingShowsSection />
+        <UpcomingShowsSection shows={upcomingShows} />
         <ContactSection />
       </main>
       <MailingListSection />

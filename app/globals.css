@@ -121,3 +121,15 @@ a {
     order: 3;
   }
 }
+
+/* Public marketing CTAs — hover fill (server components cannot use onMouseOver) */
+a.public-cta-link {
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+a.public-cta-link:hover {
+  background-color: #e8651a;
+  color: #1a0f0a;
+}

@@ -1,9 +1,12 @@
-"use client";
-
 import { MailingListSection } from "@/components/MailingListSection";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getShows } from "@/lib/data";
+import type { Show } from "@/lib/db";
+import { filterUpcomingShows } from "@/lib/showsPublic";
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+export const dynamic = "force-dynamic";
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
 const SOCIALS = {
   instagram: "https://www.instagram.com/ritathehuman/",
@@ -11,62 +14,6 @@ const SOCIALS = {
   tiktok: "https://www.tiktok.com/@comedianmikerita",
   youtube: "https://www.youtube.com/c/MikeRita",
 };
-
-// Upcoming shows — on or after April 3, 2026
-const UPCOMING_SHOWS = [
-  {
-    date: "Fri, Apr 03, 2026",
-    venue: "The Boardroom Comedy Club",
-    city: "Toronto, ON",
-    note: "Mike Rita's 420 Comedy Show",
-    ticketUrl:
-      "https://theboardroomcomedyclub.com/event/mike-ritas-420-comedy-show-1-night-only-twice-april-3rd-at-boardroom-on-932-bloor-st-west/",
-    soldOut: false,
-  },
-  {
-    date: "Sat, Apr 04, 2026",
-    venue: "The Boardroom Comedy Club",
-    city: "Toronto, ON",
-    note: "Mike Rita's 420 Comedy Show",
-    ticketUrl:
-      "https://theboardroomcomedyclub.com/event/mike-ritas-420-comedy-show-1-night-only-twice-saturday-april-4th-at-boardroom-on-932-bloor-st-west/",
-    soldOut: false,
-  },
-  {
-    date: "Fri, May 08, 2026",
-    venue: "Yuk Yuk's Niagara Falls",
-    city: "Niagara Falls, ON",
-    note: "",
-    ticketUrl: "https://www.yukyuks.com/niagarafalls/show/mike-rita-43040",
-    soldOut: false,
-  },
-  {
-    date: "Sat, May 09, 2026",
-    venue: "Yuk Yuk's Niagara Falls",
-    city: "Niagara Falls, ON",
-    note: "",
-    ticketUrl: "https://www.yukyuks.com/niagarafalls/show/mike-rita-43040",
-    soldOut: false,
-  },
-  {
-    date: "Fri, May 15, 2026",
-    venue: "Portuguese Cultural Centre of Mississauga",
-    city: "Mississauga, ON",
-    note: "Mike Rita's Big, Giant Portuguese Festa",
-    ticketUrl:
-      "https://www.eventbrite.com/e/mississauga-on-mike-ritas-big-giant-portuguese-festa-tickets-1985828941822",
-    soldOut: false,
-  },
-  {
-    date: "Mon, Jun 15, 2026",
-    venue: "Punch Line Houston",
-    city: "Houston, TX",
-    note: "Houston, We Have a Festa! (with The Portuguese Kids)",
-    ticketUrl:
-      "https://www.ticketmaster.com/the-portuguese-kids-present-houston-we-houston-texas-06-15-2026/event/3A006477C5E0AA1A",
-    soldOut: false,
-  },
-];
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
 
@@ -126,14 +73,67 @@ function Footer() {
   );
 }
 
+function UpcomingList({ shows }: { shows: Show[] }) {
+  return (
+    <div style={{ borderTop: "1px solid #3a2010" }}>
+      {shows.map((show) => (
+        <div
+          key={show.id}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 0",
+            borderBottom: "1px solid #3a2010",
+            gap: "16px",
+          }}
+        >
+          <div style={{ flex: 2 }}>
+            <span style={{ fontSize: "0.9rem", color: "#F5F0E8", display: "block" }}>
+              {show.date} — {show.venue}
+            </span>
+          </div>
+          <span style={{ flex: 1, textAlign: "center", fontSize: "0.9rem", color: "#B8A898" }}>
+            {show.city}
+          </span>
+          <span style={{ flex: 0, textAlign: "right" }}>
+            {show.soldOut ? (
+              <span style={{ color: "#B8A898", fontSize: "0.8rem", letterSpacing: "0.1em" }}>SOLD OUT</span>
+            ) : (
+              <a
+                href={show.ticketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  border: "1px solid #E8651A",
+                  color: "#E8651A",
+                  padding: "4px 16px",
+                  borderRadius: "999px",
+                  fontSize: "0.8rem",
+                  whiteSpace: "nowrap",
+                  textDecoration: "none",
+                }}
+              >
+                Tickets
+              </a>
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
-export default function LivePage() {
+export default async function LivePage() {
+  const allShows = await getShows();
+  const upcomingShows = filterUpcomingShows(allShows);
+
   return (
     <>
       <SiteHeader />
       <main style={{ backgroundColor: "#1a0f0a", minHeight: "80vh" }}>
-        {/* Page header */}
         <div
           style={{
             padding: "40px 32px 24px",
@@ -167,7 +167,6 @@ export default function LivePage() {
           </h1>
         </div>
 
-        {/* Upcoming shows */}
         <div style={{ maxWidth: "900px", margin: "0 auto", padding: "32px 32px 80px" }}>
           <h2
             style={{
@@ -182,57 +181,7 @@ export default function LivePage() {
           >
             Upcoming
           </h2>
-          <div style={{ borderTop: "1px solid #3a2010" }}>
-            {UPCOMING_SHOWS.map((show, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "14px 0",
-                  borderBottom: "1px solid #3a2010",
-                  gap: "16px",
-                }}
-              >
-                <div style={{ flex: 2 }}>
-                  <span style={{ fontSize: "0.9rem", color: "#F5F0E8", display: "block" }}>
-                    {show.date} — {show.venue}
-                  </span>
-                  {show.note && (
-                    <span style={{ fontSize: "0.78rem", color: "#B8A898", display: "block", marginTop: "2px" }}>
-                      {show.note}
-                    </span>
-                  )}
-                </div>
-                <span style={{ flex: 1, textAlign: "center", fontSize: "0.9rem", color: "#B8A898" }}>
-                  {show.city}
-                </span>
-                <span style={{ flex: 0, textAlign: "right" }}>
-                  {show.soldOut ? (
-                    <span style={{ color: "#B8A898", fontSize: "0.8rem", letterSpacing: "0.1em" }}>SOLD OUT</span>
-                  ) : (
-                    <a
-                      href={show.ticketUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        border: "1px solid #E8651A",
-                        color: "#E8651A",
-                        padding: "4px 16px",
-                        borderRadius: "999px",
-                        fontSize: "0.8rem",
-                        whiteSpace: "nowrap",
-                        textDecoration: "none",
-                      }}
-                    >
-                      Tickets
-                    </a>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
+          <UpcomingList shows={upcomingShows} />
         </div>
       </main>
       <MailingListSection />

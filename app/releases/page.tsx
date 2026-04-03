@@ -1,9 +1,12 @@
-"use client";
-
 import { MailingListSection } from "@/components/MailingListSection";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getReleases } from "@/lib/data";
+import type { Release } from "@/lib/db";
+import { releasePlatformLinks } from "@/lib/releasePlatforms";
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+export const dynamic = "force-dynamic";
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
 const SOCIALS = {
   instagram: "https://www.instagram.com/ritathehuman/",
@@ -12,69 +15,43 @@ const SOCIALS = {
   youtube: "https://www.youtube.com/c/MikeRita",
 };
 
-const RELEASES = [
-  {
-    title: "Reets",
-    year: "2025",
-    type: "Comedy Special & Album",
-    description:
-      "Mike Rita's latest comedy special and album — blending humour with heartfelt storytelling in a show celebrated as one of the best to come out of Canada in recent years.",
+/** Album art & copy — not stored in DB; keyed by release id */
+const RELEASE_PRESENTATION: Record<string, { imagePath: string; imageAlt: string; description: string }> = {
+  r1: {
     imagePath: "/images/reets-album-art.jpg",
     imageAlt: "Mike Rita — Reets album art",
-    platforms: [
-      { label: "Watch on YouTube", url: "https://youtu.be/0G1yCIdre8Y" },
-      { label: "Spotify", url: "https://open.spotify.com/album/78nUE0GWGsafoRusyiICVU" },
-      { label: "Apple Music", url: "https://music.apple.com/us/album/reets/1811059249" },
-      { label: "Amazon Music", url: "https://music.amazon.ca/albums/B0F63W2Q2M" },
-      { label: "YouTube Music", url: "https://music.youtube.com/playlist?list=OLAK5uy_lZ00svJZm0yKhmTl1-Qbq8XDCIeRTk_PA" },
-    ],
-  },
-  {
-    title: "Live in Toronto",
-    year: "2023",
-    type: "Comedy Special & Album",
     description:
-      "Mike Rita's acclaimed comedy special and album, celebrated as one of the best to have come out of Canada in recent years.",
+      "Mike Rita's latest comedy special and album — blending humour with heartfelt storytelling in a show celebrated as one of the best to come out of Canada in recent years.",
+  },
+  r2: {
     imagePath: "/images/live-in-toronto-album-art.jpg",
     imageAlt: "Mike Rita — Live in Toronto album art",
-    platforms: [
-      { label: "Watch on YouTube", url: "https://youtu.be/wJ7yEp7UAjc" },
-      { label: "Spotify", url: "https://open.spotify.com/album/05X7ioxWKpWJDrS4KV1nYV" },
-      { label: "Apple Music", url: "https://music.apple.com/us/album/live-in-toronto/1714683032" },
-      { label: "Amazon Music", url: "https://music.amazon.ca/albums/B0CMC388RH" },
-      { label: "YouTube Music", url: "https://music.youtube.com/playlist?list=OLAK5uy_ll4J7fUvMPc2FGb4KM6nxdFogsNYtS0EM" },
-    ],
-  },
-  {
-    title: "Pot Comic",
-    year: "2019",
-    type: "Comedy Album",
     description:
-      "The album that earned Mike Rita the title \"Voice of a Generation\" — humorous and timeless perspectives on life.",
+      "Mike Rita's acclaimed comedy special and album, celebrated as one of the best to have come out of Canada in recent years.",
+  },
+  r3: {
     imagePath: "/images/pot-comic-album-art.jpg",
     imageAlt: "Mike Rita — Pot Comic album art",
-    platforms: [
-      { label: "Spotify", url: "https://open.spotify.com/album/7ercdlEd0XSNkFTKRf073U" },
-      { label: "Apple Music", url: "https://music.apple.com/us/album/pot-comic/1456307449" },
-      { label: "YouTube Music", url: "https://music.youtube.com/playlist?list=OLAK5uy_mYRBIP1RiozMKKwGE5WHSM5HcwIDXNydU" },
-    ],
-  },
-  {
-    title: "Child of the 90's",
-    year: "2018",
-    type: "Comedy Album",
     description:
-      "Mike Rita's debut album — sharp, relatable, and timeless. Co-earner of the \"Voice of a Generation\" title.",
+      'The album that earned Mike Rita the title "Voice of a Generation" — humorous and timeless perspectives on life.',
+  },
+  r4: {
     imagePath: "/images/child-of-the-90s-album-art.jpg",
     imageAlt: "Mike Rita — Child of the 90's album art",
-    platforms: [
-      { label: "Spotify", url: "https://open.spotify.com/album/5G0oLXhalwgdHAG3wb0Qxp" },
-      { label: "Apple Music", url: "https://music.apple.com/us/album/child-of-the-90s/1434757685" },
-      { label: "YouTube Music", url: "https://music.youtube.com/playlist?list=OLAK5uy_mrkkqWWuyD8QRf5PT2OzzpCZV4_xeifTs" },
-      { label: "Amazon Music", url: "https://music.amazon.ca/albums/B07GZRCZYQ" },
-    ],
+    description:
+      'Mike Rita\'s debut album — sharp, relatable, and timeless. Co-earner of the "Voice of a Generation" title.',
   },
-];
+};
+
+function presentationFor(r: Release) {
+  return (
+    RELEASE_PRESENTATION[r.id] ?? {
+      imagePath: "/images/reets-album-art.jpg",
+      imageAlt: `${r.title} — album art`,
+      description: "",
+    }
+  );
+}
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
 
@@ -136,12 +113,14 @@ function Footer() {
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
-export default function ReleasesPage() {
+export default async function ReleasesPage() {
+  const rows = await getReleases();
+  const releases = [...rows].sort((a, b) => Number(b.year) - Number(a.year));
+
   return (
     <>
       <SiteHeader />
       <main style={{ backgroundColor: "#1a0f0a", minHeight: "80vh" }}>
-        {/* Page header */}
         <div
           style={{
             padding: "60px 32px 32px",
@@ -175,95 +154,90 @@ export default function ReleasesPage() {
           </h1>
         </div>
 
-        {/* Release cards — newest to oldest */}
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 32px 64px" }}>
-          {RELEASES.map((release, idx) => (
-            <div
-              key={release.title}
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                gap: "56px",
-                alignItems: "flex-start",
-                marginBottom: idx < RELEASES.length - 1 ? "80px" : 0,
-                flexWrap: "wrap-reverse",
-                paddingBottom: idx < RELEASES.length - 1 ? "80px" : 0,
-                borderBottom: idx < RELEASES.length - 1 ? "1px solid #3a2010" : "none",
-              }}
-            >
-              {/* Left: info + platform buttons */}
-              <div style={{ flex: "1 1 320px", display: "flex", flexDirection: "column", gap: "16px" }}>
-                <p
-                  style={{
-                    fontSize: "0.7rem",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    color: "#B8A898",
-                    margin: 0,
-                  }}
-                >
-                  {release.type} · {release.year}
-                </p>
-                <h2
-                  style={{
-                    fontSize: "clamp(2rem, 4vw, 3rem)",
-                    fontWeight: 900,
-                    textTransform: "uppercase",
-                    margin: 0,
-                    lineHeight: 1.05,
-                    fontFamily: "var(--font-playfair), Georgia, serif",
-                    color: "#F5F0E8",
-                  }}
-                >
-                  {release.title}
-                </h2>
-                <p style={{ color: "#B8A898", lineHeight: 1.7, fontSize: "0.95rem", maxWidth: "480px", margin: 0 }}>
-                  {release.description}
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
-                  {release.platforms.map((btn) => (
-                    <a
-                      key={btn.label}
-                      href={btn.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        border: "1px solid #E8651A",
-                        color: "#F5F0E8",
-                        textAlign: "center",
-                        padding: "10px 24px",
-                        borderRadius: "999px",
-                        fontSize: "0.85rem",
-                        textDecoration: "none",
-                        letterSpacing: "0.05em",
-                        maxWidth: "320px",
-                        transition: "background 0.2s, color 0.2s",
-                      }}
-                      onMouseOver={(e) => {
-                        (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#E8651A";
-                        (e.currentTarget as HTMLAnchorElement).style.color = "#1a0f0a";
-                      }}
-                      onMouseOut={(e) => {
-                        (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "transparent";
-                        (e.currentTarget as HTMLAnchorElement).style.color = "#F5F0E8";
-                      }}
-                    >
-                      {btn.label}
-                    </a>
-                  ))}
+          {releases.map((release, idx) => {
+            const pres = presentationFor(release);
+            const platforms = releasePlatformLinks(release);
+            return (
+              <div
+                key={release.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: "56px",
+                  alignItems: "flex-start",
+                  marginBottom: idx < releases.length - 1 ? "80px" : 0,
+                  flexWrap: "wrap-reverse",
+                  paddingBottom: idx < releases.length - 1 ? "80px" : 0,
+                  borderBottom: idx < releases.length - 1 ? "1px solid #3a2010" : "none",
+                }}
+              >
+                <div style={{ flex: "1 1 320px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <p
+                    style={{
+                      fontSize: "0.7rem",
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase",
+                      color: "#B8A898",
+                      margin: 0,
+                    }}
+                  >
+                    {release.type} · {release.year}
+                  </p>
+                  <h2
+                    style={{
+                      fontSize: "clamp(2rem, 4vw, 3rem)",
+                      fontWeight: 900,
+                      textTransform: "uppercase",
+                      margin: 0,
+                      lineHeight: 1.05,
+                      fontFamily: "var(--font-playfair), Georgia, serif",
+                      color: "#F5F0E8",
+                    }}
+                  >
+                    {release.title}
+                  </h2>
+                  {pres.description ? (
+                    <p style={{ color: "#B8A898", lineHeight: 1.7, fontSize: "0.95rem", maxWidth: "480px", margin: 0 }}>
+                      {pres.description}
+                    </p>
+                  ) : null}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
+                    {platforms.map((btn) => (
+                      <a
+                        key={btn.label}
+                        href={btn.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="public-cta-link"
+                        style={{
+                          border: "1px solid #E8651A",
+                          color: "#F5F0E8",
+                          textAlign: "center",
+                          padding: "10px 24px",
+                          borderRadius: "999px",
+                          fontSize: "0.85rem",
+                          textDecoration: "none",
+                          letterSpacing: "0.05em",
+                          maxWidth: "320px",
+                        }}
+                      >
+                        {btn.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ flex: "1 1 240px", maxWidth: "380px" }}>
+                  <img
+                    src={pres.imagePath}
+                    alt={pres.imageAlt}
+                    style={{ width: "100%", borderRadius: "12px", display: "block" }}
+                  />
                 </div>
               </div>
-
-              {/* Right: album art */}
-              <div style={{ flex: "1 1 240px", maxWidth: "380px" }}>
-                <img
-                  src={release.imagePath}
-                  alt={release.imageAlt}
-                  style={{ width: "100%", borderRadius: "12px", display: "block" }}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </main>
       <MailingListSection />

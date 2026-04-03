@@ -2,8 +2,9 @@ import Link from "next/link";
 
 import { MailingListSection } from "@/components/MailingListSection";
 import { SiteHeader } from "@/components/SiteHeader";
-import { getShows } from "@/lib/data";
-import type { Show } from "@/lib/db";
+import { getFeaturedReleaseForHome, getShows } from "@/lib/data";
+import type { Release, Show } from "@/lib/db";
+import { allReleasePlatformLinks } from "@/lib/releasePlatforms";
 import { filterUpcomingShows, showDateShortNoYear } from "@/lib/showsPublic";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +54,12 @@ function YouTubeIcon() {
 
 // ─── COMPONENTS ──────────────────────────────────────────────────────────────
 
-function FeaturedReleaseSection() {
+function FeaturedReleaseSection({ release }: { release: Release | null }) {
+  if (!release?.heroImage?.trim()) return null;
+
+  const heroSrc = `/images/${release.heroImage.trim()}`;
+  const buttons = allReleasePlatformLinks(release);
+
   return (
     <section style={{ backgroundColor: "#241408", padding: "48px 32px" }}>
       <p
@@ -91,8 +97,8 @@ function FeaturedReleaseSection() {
           }}
         >
           <img
-            src="/images/reets-hero.jpg"
-            alt="Mike Rita — Reets"
+            src={heroSrc}
+            alt={`Mike Rita — ${release.title}`}
             style={{
               width: "100%",
               height: "auto",
@@ -116,19 +122,15 @@ function FeaturedReleaseSection() {
               color: "#F5F0E8",
             }}
           >
-            REETS
+            {release.title.toUpperCase()}
           </h2>
-          <p style={{ fontSize: "0.9rem", color: "#B8A898", margin: 0 }}>2025 · Comedy Special &amp; Album</p>
+          <p style={{ fontSize: "0.9rem", color: "#B8A898", margin: 0 }}>
+            {release.year} · {release.type}
+          </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px", width: "100%" }}>
-            {[
-              { label: "Watch on YouTube", url: "https://youtu.be/0G1yCIdre8Y" },
-              { label: "Spotify", url: "https://open.spotify.com/album/78nUE0GWGsafoRusyiICVU" },
-              { label: "Apple Music", url: "https://music.apple.com/us/album/reets/1811059249" },
-              { label: "Amazon Music", url: "https://music.amazon.ca/albums/B0F63W2Q2M" },
-              { label: "YouTube Music", url: "https://music.youtube.com/playlist?list=OLAK5uy_lZ00svJZm0yKhmTl1-Qbq8XDCIeRTk_PA" },
-            ].map((btn) => (
+            {buttons.map((btn) => (
               <a
-                key={btn.label}
+                key={`${btn.label}-${btn.url}`}
                 href={btn.url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -327,12 +329,13 @@ function Footer() {
 export default async function HomePage() {
   const allShows = await getShows();
   const upcomingShows = filterUpcomingShows(allShows);
+  const featuredRelease = await getFeaturedReleaseForHome();
 
   return (
     <>
       <SiteHeader />
       <main>
-        <FeaturedReleaseSection />
+        <FeaturedReleaseSection release={featuredRelease} />
         <UpcomingShowsSection shows={upcomingShows} />
         <ContactSection />
       </main>

@@ -18,3 +18,8 @@ export function releasePlatformLinks(r: Release): { label: string; url: string }
   }
   return out;
 }
+
+/** Standard platform buttons plus admin-defined custom links */
+export function allReleasePlatformLinks(r: Release): { label: string; url: string }[] {
+  return [...releasePlatformLinks(r), ...(r.customLinks ?? [])];
+}

@@ -5,7 +5,8 @@ import { setupDb } from '@/lib/db';
  * GET /api/setup
  *
  * Creates all required tables (shows, releases, bio, awards) and seeds
- * them with Mike's initial data if they are empty.
+ * them with Mike's initial data if they are empty. `setupDb` also runs
+ * release migrations (sort_order, album_art, hero_image, custom_links).
  *
  * Run this ONCE after connecting a Vercel Postgres database to the project.
  * It is idempotent — safe to run multiple times.

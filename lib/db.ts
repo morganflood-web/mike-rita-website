@@ -21,6 +21,10 @@ export async function setupDb() {
       title TEXT NOT NULL,
       year TEXT NOT NULL,
       type TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      album_art TEXT,
+      hero_image TEXT,
+      custom_links TEXT NOT NULL DEFAULT '[]',
       youtube_url TEXT,
       spotify_url TEXT,
       apple_music_url TEXT,
@@ -29,6 +33,8 @@ export async function setupDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+
+  await migrateReleasesColumns();
 
   // Bio table (single row, keyed by id='main')
   await sql`
@@ -65,20 +71,27 @@ export async function setupDb() {
   const releasesCount = await sql`SELECT COUNT(*) FROM releases`;
   if (parseInt(releasesCount.rows[0].count) === 0) {
     await sql`
-      INSERT INTO releases (id, title, year, type, youtube_url, spotify_url, apple_music_url, amazon_music_url, youtube_music_url) VALUES
-      ('r1', 'Reets', '2024', 'Special',
+      INSERT INTO releases (
+        id, title, year, type, sort_order, album_art, hero_image, custom_links,
+        youtube_url, spotify_url, apple_music_url, amazon_music_url, youtube_music_url
+      ) VALUES
+      ('r1', 'Reets', '2024', 'Special', 1,
+        'reets-album-art.jpg', 'reets-hero.jpg', '[]',
         'https://www.youtube.com/watch?v=pxpZ8DKlFSQ',
         NULL, NULL, NULL, NULL),
-      ('r2', 'Live in Toronto', '2022', 'Special',
+      ('r2', 'Live in Toronto', '2022', 'Special', 2,
+        'live-in-toronto-album-art.jpg', 'live-in-toronto-hero.jpg', '[]',
         'https://www.youtube.com/watch?v=9pYHH3Z9HoE',
         NULL, NULL, NULL, NULL),
-      ('r3', 'Child of the 90s', '2019', 'Album',
+      ('r3', 'Child of the 90s', '2019', 'Album', 4,
+        'child-of-the-90s-album-art.jpg', NULL, '[]',
         NULL,
         'https://open.spotify.com/album/5Zf9bSIJKyK1e5RKDMaWlY',
         'https://music.apple.com/ca/album/child-of-the-90s/1480568010',
         'https://music.amazon.com/albums/B07YG6VY5Q',
         'https://music.youtube.com/browse/MPREb_Qv7RE1zFpnP'),
-      ('r4', 'Pot Comic', '2017', 'Album',
+      ('r4', 'Pot Comic', '2017', 'Album', 3,
+        'pot-comic-album-art.jpg', NULL, '[]',
         NULL,
         'https://open.spotify.com/album/4tWJLMklEUSJLT0MiOpj8K',
         'https://music.apple.com/ca/album/pot-comic/1263105791',
@@ -86,29 +99,43 @@ export async function setupDb() {
         'https://music.youtube.com/browse/MPREb_Xhk3JLIHYkL')
     `;
   }
+}
 
-  // Seed bio if empty
-  const bioCount = await sql`SELECT COUNT(*) FROM bio`;
-  if (parseInt(bioCount.rows[0].count) === 0) {
-    await sql`
-      INSERT INTO bio (id, text) VALUES (
-        'main',
-        'Mike Rita is an award-winning comedian from Toronto, known for his relatable storytelling and sharp humour. Drawing inspiration from his Portuguese heritage, Mike''s comedy explores themes of family dynamics, cultural identity, and everyday life experiences solidifying his status as a ''must-see'' performer.\n\nMike has made numerous appearances at the prestigious Just For Laughs festival and notably became the first comic to host a 420 show at the festival. In 2024, he was honoured by the president of Portugal as one of the 70 most significant Portuguese Canadians of the past 70 years, highlighting his impact and influence.\n\nHis albums, ''Pot Comic'' and ''Child of the 90s,'' have earned him the title "Voice of a Generation" for their humorous and timeless perspectives on life. Additionally, his comedy specials ''Live in Toronto'' and ''Reets'' are celebrated by many as one of the best to have come out of Canada in recent years, showcasing his unique ability to blend humour with heartfelt storytelling.'
-      )
-    `;
-  }
+/** Idempotent column additions + backfill for existing deployments */
+export async function migrateReleasesColumns() {
+  await sql`ALTER TABLE releases ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0`;
+  await sql`ALTER TABLE releases ADD COLUMN IF NOT EXISTS album_art TEXT`;
+  await sql`ALTER TABLE releases ADD COLUMN IF NOT EXISTS hero_image TEXT`;
+  await sql`ALTER TABLE releases ADD COLUMN IF NOT EXISTS custom_links TEXT DEFAULT '[]'`;
 
-  // Seed awards if empty
-  const awardsCount = await sql`SELECT COUNT(*) FROM awards`;
-  if (parseInt(awardsCount.rows[0].count) === 0) {
-    await sql`
-      INSERT INTO awards (id, text, sort_order) VALUES
-      ('a1', '2024 — Honoured by the President of Portugal — one of the 70 most significant Portuguese Canadians of the past 70 years', 0),
-      ('a2', '2022 — Canadian Screen Award Nominee — Best Performance, Sketch Comedy (Individual or Ensemble) — Roast Battle Canada', 1),
-      ('a3', '2014 & 2015 — Now Magazine Runner-Up — Best Male Stand-Up', 2),
-      ('a4', '2010 — Tim Sims Encouragement Award Winner — Second City Toronto', 3)
-    `;
-  }
+  await sql`
+    UPDATE releases SET sort_order = CASE id
+      WHEN 'r1' THEN 1 WHEN 'r2' THEN 2 WHEN 'r4' THEN 3 WHEN 'r3' THEN 4
+      ELSE 0 END
+    WHERE sort_order = 0
+  `;
+
+  await sql`
+    UPDATE releases SET album_art = CASE id
+      WHEN 'r1' THEN 'reets-album-art.jpg'
+      WHEN 'r2' THEN 'live-in-toronto-album-art.jpg'
+      WHEN 'r3' THEN 'child-of-the-90s-album-art.jpg'
+      WHEN 'r4' THEN 'pot-comic-album-art.jpg'
+      ELSE NULL END
+    WHERE album_art IS NULL
+  `;
+
+  await sql`
+    UPDATE releases SET hero_image = CASE id
+      WHEN 'r1' THEN 'reets-hero.jpg'
+      WHEN 'r2' THEN 'live-in-toronto-hero.jpg'
+      ELSE NULL END
+    WHERE hero_image IS NULL
+  `;
+
+  await sql`
+    UPDATE releases SET custom_links = '[]' WHERE custom_links IS NULL
+  `;
 }
 
 // ─── Type exports ───────────────────────────────────────────────────────────
@@ -122,11 +149,20 @@ export interface Show {
   soldOut: boolean;
 }
 
+export interface CustomLink {
+  label: string;
+  url: string;
+}
+
 export interface Release {
   id: string;
   title: string;
   year: string;
   type: string;
+  sortOrder: number;
+  albumArt?: string | null;
+  heroImage?: string | null;
+  customLinks: CustomLink[];
   youtubeUrl?: string | null;
   spotifyUrl?: string | null;
   appleMusicUrl?: string | null;

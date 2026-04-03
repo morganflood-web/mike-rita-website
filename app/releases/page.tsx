@@ -2,7 +2,7 @@ import { MailingListSection } from "@/components/MailingListSection";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getReleases } from "@/lib/data";
 import type { Release } from "@/lib/db";
-import { releasePlatformLinks } from "@/lib/releasePlatforms";
+import { allReleasePlatformLinks } from "@/lib/releasePlatforms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,42 +15,30 @@ const SOCIALS = {
   youtube: "https://www.youtube.com/c/MikeRita",
 };
 
-/** Album art & copy — not stored in DB; keyed by release id */
-const RELEASE_PRESENTATION: Record<string, { imagePath: string; imageAlt: string; description: string }> = {
-  r1: {
-    imagePath: "/images/reets-album-art.jpg",
-    imageAlt: "Mike Rita — Reets album art",
-    description:
-      "Mike Rita's latest comedy special and album — blending humour with heartfelt storytelling in a show celebrated as one of the best to come out of Canada in recent years.",
-  },
-  r2: {
-    imagePath: "/images/live-in-toronto-album-art.jpg",
-    imageAlt: "Mike Rita — Live in Toronto album art",
-    description:
-      "Mike Rita's acclaimed comedy special and album, celebrated as one of the best to have come out of Canada in recent years.",
-  },
-  r3: {
-    imagePath: "/images/pot-comic-album-art.jpg",
-    imageAlt: "Mike Rita — Pot Comic album art",
-    description:
-      'The album that earned Mike Rita the title "Voice of a Generation" — humorous and timeless perspectives on life.',
-  },
-  r4: {
-    imagePath: "/images/child-of-the-90s-album-art.jpg",
-    imageAlt: "Mike Rita — Child of the 90's album art",
-    description:
-      'Mike Rita\'s debut album — sharp, relatable, and timeless. Co-earner of the "Voice of a Generation" title.',
-  },
+/** Long-form blurbs — optional; not stored in DB */
+const RELEASE_DESCRIPTIONS: Record<string, string> = {
+  r1:
+    "Mike Rita's latest comedy special and album — blending humour with heartfelt storytelling in a show celebrated as one of the best to come out of Canada in recent years.",
+  r2:
+    "Mike Rita's acclaimed comedy special and album, celebrated as one of the best to have come out of Canada in recent years.",
+  r3:
+    'The album that earned Mike Rita the title "Voice of a Generation" — humorous and timeless perspectives on life.',
+  r4:
+    'Mike Rita\'s debut album — sharp, relatable, and timeless. Co-earner of the "Voice of a Generation" title.',
 };
 
-function presentationFor(r: Release) {
-  return (
-    RELEASE_PRESENTATION[r.id] ?? {
-      imagePath: "/images/reets-album-art.jpg",
-      imageAlt: `${r.title} — album art`,
-      description: "",
-    }
-  );
+function descriptionFor(r: Release): string {
+  return RELEASE_DESCRIPTIONS[r.id] ?? "";
+}
+
+function albumArtSrc(r: Release): string {
+  const f = r.albumArt?.trim();
+  if (f) return `/images/${f}`;
+  return "/images/reets-album-art.jpg";
+}
+
+function albumArtAlt(r: Release): string {
+  return `Mike Rita — ${r.title} album art`;
 }
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
@@ -114,8 +102,7 @@ function Footer() {
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
 export default async function ReleasesPage() {
-  const rows = await getReleases();
-  const releases = [...rows].sort((a, b) => Number(b.year) - Number(a.year));
+  const releases = await getReleases();
 
   return (
     <>
@@ -156,8 +143,8 @@ export default async function ReleasesPage() {
 
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 32px 64px" }}>
           {releases.map((release, idx) => {
-            const pres = presentationFor(release);
-            const platforms = releasePlatformLinks(release);
+            const desc = descriptionFor(release);
+            const platforms = allReleasePlatformLinks(release);
             return (
               <div
                 key={release.id}
@@ -197,15 +184,15 @@ export default async function ReleasesPage() {
                   >
                     {release.title}
                   </h2>
-                  {pres.description ? (
+                  {desc ? (
                     <p style={{ color: "#B8A898", lineHeight: 1.7, fontSize: "0.95rem", maxWidth: "480px", margin: 0 }}>
-                      {pres.description}
+                      {desc}
                     </p>
                   ) : null}
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
                     {platforms.map((btn) => (
                       <a
-                        key={btn.label}
+                        key={`${btn.label}-${btn.url}`}
                         href={btn.url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -230,8 +217,8 @@ export default async function ReleasesPage() {
 
                 <div style={{ flex: "1 1 240px", maxWidth: "380px" }}>
                   <img
-                    src={pres.imagePath}
-                    alt={pres.imageAlt}
+                    src={albumArtSrc(release)}
+                    alt={albumArtAlt(release)}
                     style={{ width: "100%", borderRadius: "12px", display: "block" }}
                   />
                 </div>

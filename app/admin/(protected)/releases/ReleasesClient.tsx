@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Release } from '@/lib/db';
-import { s, inputStyle, selectStyle, btnStyle, dangerBtnStyle, secondaryBtnStyle } from '../adminStyles';
+import { s, inputStyle, selectStyle, btnStyle, dangerBtnStyle, secondaryBtnStyle } from '../../adminStyles';
 
 interface Props {
   releases: Release[];

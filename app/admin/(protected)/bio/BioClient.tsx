@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Bio, Award } from '@/lib/db';
-import { s, inputStyle, btnStyle, dangerBtnStyle } from '../adminStyles';
+import { s, inputStyle, btnStyle, dangerBtnStyle } from '../../adminStyles';
 
 interface Props {
   bio: Bio;

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Show } from '@/lib/db';
-import { s, inputStyle, btnStyle, dangerBtnStyle, secondaryBtnStyle } from '../adminStyles';
+import { s, inputStyle, btnStyle, dangerBtnStyle, secondaryBtnStyle } from '../../adminStyles';
 
 interface Props {
   shows: Show[];

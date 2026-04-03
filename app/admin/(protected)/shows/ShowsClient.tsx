@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import type { Show } from '@/lib/db';
+import { displayDateToIso } from '@/lib/showDateFormat';
 import { s, inputStyle, btnStyle, dangerBtnStyle, secondaryBtnStyle } from '../../adminStyles';
+
+const dateInputStyle = { ...inputStyle, colorScheme: 'dark' as const };
 
 interface Props {
   shows: Show[];
@@ -14,11 +17,19 @@ interface Props {
 export default function ShowsClient({ shows, addShow, updateShow, deleteShow }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [addDate, setAddDate] = useState('');
+  const [addVenue, setAddVenue] = useState('');
+  const [addCity, setAddCity] = useState('');
+  const [addTicketUrl, setAddTicketUrl] = useState('');
 
   async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
     await addShow(new FormData(e.currentTarget));
+    setAddDate('');
+    setAddVenue('');
+    setAddCity('');
+    setAddTicketUrl('');
     (e.currentTarget as HTMLFormElement).reset();
     setSubmitting(false);
   }
@@ -46,10 +57,56 @@ export default function ShowsClient({ shows, addShow, updateShow, deleteShow }: 
       <section style={s.card}>
         <h2 style={s.sectionTitle}>Add New Show</h2>
         <form onSubmit={handleAdd} style={s.formGrid}>
-          <Field label="Date" name="date" placeholder="Fri, Apr 03, 2026" required />
-          <Field label="Venue" name="venue" placeholder="The Boardroom Comedy Club" required />
-          <Field label="City" name="city" placeholder="Toronto, ON" required />
-          <Field label="Ticket URL" name="ticketUrl" placeholder="https://…" required fullWidth />
+          <div>
+            <label style={s.label}>Date</label>
+            <input
+              type="date"
+              name="date"
+              value={addDate}
+              onChange={(e) => setAddDate(e.target.value)}
+              required
+              style={dateInputStyle}
+            />
+          </div>
+          <div>
+            <label style={s.label}>Venue</label>
+            <input
+              type="text"
+              name="venue"
+              value={addVenue}
+              onChange={(e) => setAddVenue(e.target.value)}
+              placeholder="The Boardroom Comedy Club"
+              autoComplete="off"
+              required
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={s.label}>City</label>
+            <input
+              type="text"
+              name="city"
+              value={addCity}
+              onChange={(e) => setAddCity(e.target.value)}
+              placeholder="Toronto, ON"
+              autoComplete="off"
+              required
+              style={inputStyle}
+            />
+          </div>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={s.label}>Ticket URL</label>
+            <input
+              type="text"
+              name="ticketUrl"
+              value={addTicketUrl}
+              onChange={(e) => setAddTicketUrl(e.target.value)}
+              placeholder="https://…"
+              autoComplete="off"
+              required
+              style={inputStyle}
+            />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <input type="checkbox" id="soldOut-add" name="soldOut" style={{ width: 16, height: 16 }} />
             <label htmlFor="soldOut-add" style={s.checkLabel}>Sold Out</label>
@@ -82,12 +139,33 @@ export default function ShowsClient({ shows, addShow, updateShow, deleteShow }: 
                   editingId === show.id ? (
                     <tr key={show.id} style={s.editRow}>
                       <td colSpan={6} style={{ padding: '1rem' }}>
-                        <form onSubmit={handleUpdate} style={s.formGrid}>
+                        <form onSubmit={handleUpdate} style={s.formGrid} key={`edit-${show.id}`}>
                           <input type="hidden" name="id" value={show.id} />
-                          <Field label="Date" name="date" defaultValue={show.date} required />
-                          <Field label="Venue" name="venue" defaultValue={show.venue} required />
-                          <Field label="City" name="city" defaultValue={show.city} required />
-                          <Field label="Ticket URL" name="ticketUrl" defaultValue={show.ticketUrl} required fullWidth />
+                          <div>
+                            <label style={s.label}>Date</label>
+                            <input
+                              type="date"
+                              name="date"
+                              defaultValue={displayDateToIso(show.date)}
+                              required
+                              style={dateInputStyle}
+                            />
+                          </div>
+                          <Field
+                            label="Venue"
+                            name="venue"
+                            defaultValue={show.venue}
+                            required
+                            autoComplete="off"
+                          />
+                          <Field
+                            label="City"
+                            name="city"
+                            defaultValue={show.city}
+                            required
+                            autoComplete="off"
+                          />
+                          <Field label="Ticket URL" name="ticketUrl" defaultValue={show.ticketUrl} required fullWidth autoComplete="off" />
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <input
                               type="checkbox"
@@ -143,7 +221,13 @@ export default function ShowsClient({ shows, addShow, updateShow, deleteShow }: 
 }
 
 function Field({
-  label, name, placeholder, defaultValue, required, fullWidth,
+  label,
+  name,
+  placeholder,
+  defaultValue,
+  required,
+  fullWidth,
+  autoComplete,
 }: {
   label: string;
   name: string;
@@ -151,15 +235,18 @@ function Field({
   defaultValue?: string;
   required?: boolean;
   fullWidth?: boolean;
+  autoComplete?: string;
 }) {
   return (
     <div style={fullWidth ? { gridColumn: '1 / -1' } : {}}>
       <label style={s.label}>{label}</label>
       <input
+        type="text"
         name={name}
         placeholder={placeholder}
         defaultValue={defaultValue}
         required={required}
+        autoComplete={autoComplete}
         style={inputStyle}
       />
     </div>

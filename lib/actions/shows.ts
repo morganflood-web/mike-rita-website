@@ -2,6 +2,7 @@
 
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
+import { isoDateToDisplay } from '../showDateFormat';
 import { isAuthenticated } from '../auth';
 
 function guard() {
@@ -12,7 +13,8 @@ export async function addShow(formData: FormData) {
   if (!(await isAuthenticated())) throw new Error('Unauthorized');
 
   const id = Date.now().toString();
-  const date = formData.get('date') as string;
+  const rawDate = (formData.get('date') as string) ?? '';
+  const date = isoDateToDisplay(rawDate);
   const venue = formData.get('venue') as string;
   const city = formData.get('city') as string;
   const ticketUrl = formData.get('ticketUrl') as string;
@@ -32,7 +34,8 @@ export async function updateShow(formData: FormData) {
   if (!(await isAuthenticated())) throw new Error('Unauthorized');
 
   const id = formData.get('id') as string;
-  const date = formData.get('date') as string;
+  const rawDate = (formData.get('date') as string) ?? '';
+  const date = isoDateToDisplay(rawDate);
   const venue = formData.get('venue') as string;
   const city = formData.get('city') as string;
   const ticketUrl = formData.get('ticketUrl') as string;

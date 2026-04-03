@@ -1,26 +1,123 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #1a0f0a;
+  color: #F5F0E8;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+}
+
+/* Site header: desktop nav | absolutely centred brand | socials; mobile stacked, centred */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background-color: #1a0f0a;
+  border-bottom: 1px solid #3a2010;
+}
+
+.site-header__brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #f5f0e8;
+  white-space: nowrap;
+  font-family: var(--font-playfair), Georgia, serif;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.site-header__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-header__nav-link {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  color: #b8a898;
+  text-decoration: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.site-header__nav-link--active {
+  color: #e8651a;
+}
+
+.site-header__sep {
+  display: none;
+}
+
+.site-header__socials {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.site-header__socials a {
+  color: #b8a898;
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .site-header__brand {
+    position: static;
+    transform: none;
+    order: 1;
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+
+  .site-header__nav {
+    order: 2;
+    justify-content: center;
+    gap: 0;
+    row-gap: 8px;
+  }
+
+  .site-header__sep {
+    display: inline;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    color: #3a2010;
+    font-size: 0.75rem;
+    padding: 0 5px;
+    user-select: none;
+  }
+
+  .site-header__socials {
+    order: 3;
+  }
 }

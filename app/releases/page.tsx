@@ -15,22 +15,6 @@ const SOCIALS = {
   youtube: "https://www.youtube.com/c/MikeRita",
 };
 
-/** Long-form blurbs — optional; not stored in DB */
-const RELEASE_DESCRIPTIONS: Record<string, string> = {
-  r1:
-    "Mike Rita's latest comedy special and album — blending humour with heartfelt storytelling in a show celebrated as one of the best to come out of Canada in recent years.",
-  r2:
-    "Mike Rita's acclaimed comedy special and album, celebrated as one of the best to have come out of Canada in recent years.",
-  r3:
-    'The album that earned Mike Rita the title "Voice of a Generation" — humorous and timeless perspectives on life.',
-  r4:
-    'Mike Rita\'s debut album — sharp, relatable, and timeless. Co-earner of the "Voice of a Generation" title.',
-};
-
-function descriptionFor(r: Release): string {
-  return RELEASE_DESCRIPTIONS[r.id] ?? "";
-}
-
 function albumArtSrc(r: Release): string {
   const f = r.albumArt?.trim();
   if (f) return `/images/${f}`;
@@ -143,7 +127,6 @@ export default async function ReleasesPage() {
 
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 32px 64px" }}>
           {releases.map((release, idx) => {
-            const desc = descriptionFor(release);
             const platforms = allReleasePlatformLinks(release);
             return (
               <div
@@ -184,11 +167,6 @@ export default async function ReleasesPage() {
                   >
                     {release.title}
                   </h2>
-                  {desc ? (
-                    <p style={{ color: "#B8A898", lineHeight: 1.7, fontSize: "0.95rem", maxWidth: "480px", margin: 0 }}>
-                      {desc}
-                    </p>
-                  ) : null}
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
                     {platforms.map((btn) => (
                       <a

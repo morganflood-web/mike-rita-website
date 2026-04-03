@@ -238,19 +238,21 @@ function UpcomingShowsSection() {
   return (
     <section style={{ backgroundColor: "#1a0f0a", padding: "80px 32px" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-        <h2
-          style={{
-            fontSize: "0.75rem",
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: "#B8A898",
-            marginBottom: "24px",
-            fontWeight: 400,
-            fontFamily: "var(--font-playfair), Georgia, serif",
-          }}
-        >
-          Live
-        </h2>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <h2
+            style={{
+              fontSize: "clamp(2rem, 5vw, 3.5rem)",
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              margin: 0,
+              fontFamily: "var(--font-playfair), Georgia, serif",
+              color: "#F5F0E8",
+            }}
+          >
+            Live Dates
+          </h2>
+        </div>
         <div style={{ borderTop: "1px solid #3a2010" }}>
           {shows.map((show, i) => {
             const note =

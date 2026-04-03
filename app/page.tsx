@@ -237,78 +237,93 @@ function UpcomingShowsSection() {
 
   return (
     <section style={{ backgroundColor: "#1a0f0a", padding: "80px 32px" }}>
-      <h2
-        style={{
-          textAlign: "center",
-          fontSize: "1.25rem",
-          letterSpacing: "0.2em",
-          textTransform: "uppercase",
-          fontWeight: 700,
-          marginBottom: "48px",
-          fontFamily: "var(--font-playfair), Georgia, serif",
-          color: "#F5F0E8",
-        }}
-      >
-        Upcoming Shows
-      </h2>
-      <div style={{ borderTop: "1px solid #3a2010", maxWidth: "900px", margin: "0 auto" }}>
-        {shows.map((show, i) => (
-          <div
-            key={`${show.dateKey}-${show.venue}-${i}`}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "14px 0",
-              borderBottom: "1px solid #3a2010",
-            }}
-          >
-            <span style={{ flex: 2, fontSize: "0.9rem", color: "#F5F0E8" }}>
-              {show.date} — {show.venue}
-            </span>
-            <span style={{ flex: 1, textAlign: "center", fontSize: "0.9rem", color: "#B8A898" }}>
-              {show.city}
-            </span>
-            <span style={{ flex: 0, textAlign: "right" }}>
-              {show.soldOut ? (
-                <span style={{ color: "#B8A898", fontSize: "0.8rem", letterSpacing: "0.1em" }}>SOLD OUT</span>
-              ) : (
-                <a
-                  href={show.ticketUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    border: "1px solid #E8651A",
-                    color: "#F5F0E8",
-                    padding: "4px 16px",
-                    borderRadius: "999px",
-                    fontSize: "0.8rem",
-                    whiteSpace: "nowrap",
-                    textDecoration: "none",
-                  }}
-                >
-                  Tickets
-                </a>
-              )}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div style={{ textAlign: "center", marginTop: "36px" }}>
-        <Link
-          href="/live"
+      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+        <h2
           style={{
-            border: "1px solid #E8651A",
-            color: "#F5F0E8",
-            padding: "10px 28px",
-            borderRadius: "999px",
-            fontSize: "0.85rem",
-            textDecoration: "none",
-            letterSpacing: "0.1em",
+            fontSize: "0.75rem",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "#B8A898",
+            marginBottom: "24px",
+            fontWeight: 400,
+            fontFamily: "var(--font-playfair), Georgia, serif",
           }}
         >
-          All Dates →
-        </Link>
+          Live
+        </h2>
+        <div style={{ borderTop: "1px solid #3a2010" }}>
+          {shows.map((show, i) => {
+            const note =
+              "note" in show && typeof (show as { note?: string }).note === "string"
+                ? (show as { note?: string }).note
+                : "";
+            return (
+              <div
+                key={`${show.dateKey}-${show.venue}-${i}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "14px 0",
+                  borderBottom: "1px solid #3a2010",
+                  gap: "16px",
+                }}
+              >
+                <div style={{ flex: 2 }}>
+                  <span style={{ fontSize: "0.9rem", color: "#F5F0E8", display: "block" }}>
+                    {show.date} — {show.venue}
+                  </span>
+                  {note ? (
+                    <span style={{ fontSize: "0.78rem", color: "#B8A898", display: "block", marginTop: "2px" }}>
+                      {note}
+                    </span>
+                  ) : null}
+                </div>
+                <span style={{ flex: 1, textAlign: "center", fontSize: "0.9rem", color: "#B8A898" }}>
+                  {show.city}
+                </span>
+                <span style={{ flex: 0, textAlign: "right" }}>
+                  {show.soldOut ? (
+                    <span style={{ color: "#B8A898", fontSize: "0.8rem", letterSpacing: "0.1em" }}>SOLD OUT</span>
+                  ) : (
+                    <a
+                      href={show.ticketUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        border: "1px solid #E8651A",
+                        color: "#E8651A",
+                        padding: "4px 16px",
+                        borderRadius: "999px",
+                        fontSize: "0.8rem",
+                        whiteSpace: "nowrap",
+                        textDecoration: "none",
+                      }}
+                    >
+                      Tickets
+                    </a>
+                  )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ textAlign: "center", marginTop: "36px" }}>
+          <Link
+            href="/live"
+            style={{
+              border: "1px solid #E8651A",
+              color: "#F5F0E8",
+              padding: "10px 28px",
+              borderRadius: "999px",
+              fontSize: "0.85rem",
+              textDecoration: "none",
+              letterSpacing: "0.1em",
+            }}
+          >
+            All Dates →
+          </Link>
+        </div>
       </div>
     </section>
   );

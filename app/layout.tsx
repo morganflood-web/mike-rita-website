@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     images: ["/images/reets-hero.jpg"],
   },
   verification: {
-    google: "U71Pe27LFlfMHuED",
+    google: "xgIsIAoNd5kKQnVB85rbI4teM_5t-nuVGTcgQ6rj6GE",
   },
 };
 

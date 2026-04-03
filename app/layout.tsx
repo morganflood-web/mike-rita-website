@@ -36,6 +36,9 @@ export const metadata: Metadata = {
       "Award-winning comedian from Toronto. Comedy specials 'Reets' and 'Live in Toronto' available now.",
     images: ["/images/reets-hero.jpg"],
   },
+  verification: {
+    google: "U71Pe27LFlfMHuED",
+  },
 };
 
 export default function RootLayout({

@@ -44,9 +44,8 @@ export async function getShows(): Promise<Show[]> {
   const result = await sql`
     SELECT id, date, venue, city, ticket_url, sold_out
     FROM shows
-    ORDER BY created_at ASC
   `;
-  return result.rows.map((row) => ({
+  const shows = result.rows.map((row) => ({
     id: row.id,
     date: row.date,
     venue: row.venue,
@@ -54,6 +53,9 @@ export async function getShows(): Promise<Show[]> {
     ticketUrl: row.ticket_url,
     soldOut: row.sold_out,
   }));
+  // Sort chronologically regardless of insertion order
+  shows.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  return shows;
 }
 
 export async function getReleases(): Promise<Release[]> {

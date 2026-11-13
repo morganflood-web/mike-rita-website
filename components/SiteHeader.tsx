@@ -12,12 +12,13 @@ const SOCIALS = {
 } as const;
 
 const NAV_ITEMS = [
-  { label: "HOME", href: "/" },
-  { label: "LIVE", href: "/live" },
-  { label: "RELEASES", href: "/releases" },
-  { label: "ABOUT", href: "/bio" },
-  { label: "CONTACT", href: "/contact" },
-] as const;
+  { label: "HOME", href: "/", external: false },
+  { label: "LIVE", href: "/live", external: false },
+  { label: "RELEASES", href: "/releases", external: false },
+  { label: "ABOUT", href: "/bio", external: false },
+  { label: "MERCH", href: "https://www.almalusabrand.com/en-ca/affiliate/67651198c35556d464ff6fe72556de101f637a6e1c385fe83c19dc83093dc3fc/affiliate/mikerita", external: true },
+  { label: "CONTACT", href: "/contact", external: false },
+];
 
 function InstagramIcon() {
   return (
@@ -58,7 +59,7 @@ export function SiteHeader() {
     <header className="site-header">
       <nav className="site-header__nav" aria-label="Main navigation">
         {NAV_ITEMS.map((item, i) => {
-          const active = item.href === "/" ? pathname === "/" : pathname === item.href;
+          const active = !item.external && (item.href === "/" ? pathname === "/" : pathname === item.href);
           return (
             <Fragment key={item.href}>
               {i > 0 ? (
@@ -66,12 +67,23 @@ export function SiteHeader() {
                   |
                 </span>
               ) : null}
-              <Link
-                href={item.href}
-                className={active ? "site-header__nav-link site-header__nav-link--active" : "site-header__nav-link"}
-              >
-                {item.label}
-              </Link>
+              {item.external ? (
+                <a
+                  href={item.href}
+                  className="site-header__nav-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  href={item.href}
+                  className={active ? "site-header__nav-link site-header__nav-link--active" : "site-header__nav-link"}
+                >
+                  {item.label}
+                </Link>
+              )}
             </Fragment>
           );
         })}
